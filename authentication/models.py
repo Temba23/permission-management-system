@@ -35,7 +35,7 @@ class CustomUser(AbstractBaseUser, PermissionsMixin):
     )
 
     number = models.CharField(max_length=10)
-    dob = models.DateField(help_text=_("In B.S"))
+    dob = models.DateField(help_text=_("In A.D"))
 
     role = models.CharField(max_length=20, choices=role)
 
@@ -61,3 +61,6 @@ class CustomUser(AbstractBaseUser, PermissionsMixin):
     class Meta:
         verbose_name = _("user")
         verbose_name_plural = _("users")
+        permissions = (
+            ("change_role", "Can Change Role"),
+        )

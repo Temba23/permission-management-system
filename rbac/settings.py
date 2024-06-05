@@ -42,6 +42,7 @@ DEFAULT_APPS = [
 
 CUSTOM_APPS = [
     'authentication',
+    'data'
 ]
 
 THIRD_PARTY_APPS =[

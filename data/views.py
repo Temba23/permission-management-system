@@ -82,6 +82,10 @@ class ChangeRole(APIView):
         return Response("No GET method.", status=status.HTTP_405_METHOD_NOT_ALLOWED)
     
     def post(self, request):
+        for required in ['id', 'desired_role']:
+            if request.data.get(required) is None:
+                return Response({"message": f'Please send the {required} along with request.'}, status=status.HTTP_400_BAD_REQUEST)
+            
         user_role = request.user.role
         pk = request.data.get('id')
         desired_role = request.data.get('desired_role')

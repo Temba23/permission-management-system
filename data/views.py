@@ -5,6 +5,7 @@ from .models import Data
 from .serializers import DataSerializer
 from rest_framework import status
 from django.db.models import Q
+from authentication.models import CustomUser
 
 class DataView(APIView):
     permission_classes = [IsAuthenticated]
@@ -74,4 +75,27 @@ class DataView(APIView):
             return Response("Data Not Found.", status=status.HTTP_404_NOT_FOUND)
         
         except Exception as e:
-            return Response(str(e), status=status.HTTP_400_BAD_REQUEST)   
+            return Response(str(e), status=status.HTTP_400_BAD_REQUEST)
+        
+class ChangeRole(APIView):
+    def get(self, request):
+        return Response("No GET method.", status=status.HTTP_405_METHOD_NOT_ALLOWED)
+    
+    def post(self, request):
+        user_role = request.user.role
+        pk = request.data.get('id')
+        desired_role = request.data.get('desired_role')
+        print("User role: ",user_role)
+        if user_role == "admin":
+            if desired_role in ['admin', 'staff', 'user']:
+                try:
+                    user = CustomUser.objects.get(id=pk)
+                    user.role = desired_role
+                    user.save()
+                    return Response("Role changed.", status=status.HTTP_200_OK)
+                except CustomUser.DoesNotExist:
+                    return Response("User doesnot exist.", status=status.HTTP_400_BAD_REQUEST)
+            else:
+                return Response("Invalid Role.", status=status.HTTP_400_BAD_REQUEST)
+        else:
+            return Response("Don't Have This Access.", status=status.HTTP_403_FORBIDDEN)

@@ -6,6 +6,7 @@ from .serializers import DataSerializer
 from rest_framework import status
 from django.db.models import Q
 from authentication.models import CustomUser
+from django.contrib.auth.models import Permission
 
 class DataView(APIView):
     permission_classes = [IsAuthenticated]
@@ -86,11 +87,13 @@ class ChangeRole(APIView):
             if request.data.get(required) is None:
                 return Response({"message": f'Please send the {required} along with request.'}, status=status.HTTP_400_BAD_REQUEST)
             
+        user = request.user
         user_role = request.user.role
         pk = request.data.get('id')
         desired_role = request.data.get('desired_role')
         print("User role: ",user_role)
-        if user_role == "admin":
+
+        if user_role == "admin" or user.has_perm('authenticaion.change_role'):
             if desired_role in ['admin', 'staff', 'user']:
                 try:
                     user = CustomUser.objects.get(id=pk)
@@ -103,3 +106,22 @@ class ChangeRole(APIView):
                 return Response("Invalid Role.", status=status.HTTP_400_BAD_REQUEST)
         else:
             return Response("Don't Have This Access.", status=status.HTTP_403_FORBIDDEN)
+
+class GivePermission(APIView):
+    def get(self, request):
+        return Response({"Error":"GET method not allowed."}, status=status.HTTP_400_BAD_REQUEST)
+    
+    def post(self, request):
+        if not request.user.role == "admin":
+            return Response("Not Allowed Access For This Method.", status=status.HTTP_403_FORBIDDEN)
+        try:
+            pk = request.data.get('pk')
+            print(pk)
+            user = CustomUser.objects.get(id=pk)
+            permission = Permission.objects.get(codename="change_role")
+            user.user_permissions.add(permission)
+            user.save()
+            return Response("Access given to change the role.", status=status.HTTP_200_OK)
+        except CustomUser.DoesNotExist:
+            return Response("User doesnot exist.", status=status.HTTP_400_BAD_REQUEST)
+            

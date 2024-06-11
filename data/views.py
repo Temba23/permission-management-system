@@ -7,6 +7,9 @@ from rest_framework import status
 from django.db.models import Q
 from authentication.models import CustomUser
 from django.contrib.auth.models import Permission
+import qrcode
+from io import BytesIO
+from django.http import StreamingHttpResponse
 
 class DataView(APIView):
     permission_classes = [IsAuthenticated]
@@ -124,4 +127,27 @@ class GivePermission(APIView):
             return Response("Access given to change the role.", status=status.HTTP_200_OK)
         except CustomUser.DoesNotExist:
             return Response("User doesnot exist.", status=status.HTTP_400_BAD_REQUEST)
-            
+        
+
+class ConvertToQr(APIView):
+    serializer_class = DataSerializer
+    def get(self, request):
+        user = request.user
+        data = Data.objects.filter(user=user).all()
+        serializer = self.serializer_class(data, many=True)
+        serializer_data = serializer.data
+
+        """
+        Converting the user data to qr
+        """
+        qr = qrcode.QRCode(version=3, box_size=10, border=5, error_correction=qrcode.constants.ERROR_CORRECT_H)
+        qr.add_data(serializer_data)
+        qr.make(fit=True)
+        img = qr.make_image(fill_color="black", back_color="white")
+        buffer = BytesIO()
+        img.save(buffer)
+        buffer.seek(0)
+
+        response = StreamingHttpResponse(buffer, content_type="image/png")
+        return response
+             

@@ -11,3 +11,7 @@ Features in the project :
 
 - Qr Data:
    User's can get access to their data by the qr image.
+
+API DOCUMENTATION :
+
+![image](https://github.com/Temba23/permission-management-system/assets/126068369/36c5c829-22d1-45cc-9e82-26c2dbd8b8c7)
